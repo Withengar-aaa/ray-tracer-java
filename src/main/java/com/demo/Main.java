@@ -9,21 +9,23 @@ public class Main
 
     static Point O = new Point(0, 0, 0);
 
-    static int canvasWidth=1080;
+    static int canvasWidth=960;
 
-    static int canvasHeight =1080 ;
+    static int canvasHeight =960 ;
 
-    static int canvasToViewDistance = 10;
+    static int canvasToViewDistance = 1;
 
-    static int viewWidth =960;
+    static double viewWidth =1;
 
-    static int viewHeight= 960;
+    static double viewHeight= 1;
 
-    Sphere sphereA = new Sphere(new Point(0,-1,3),1,new Color(255,0,0));
+    private final Color backgroundColor = new Color(255,255,255);
 
-    Sphere sphereB = new Sphere(new Point(2,0,4),1,new Color(0,255,255));
+    private final Sphere sphereA = new Sphere(new Point(0,-1,3),1,new Color(255,0,0));
 
-    Sphere sphereC = new Sphere(new Point(-2,0,4),1,new Color(0,255,0));
+    private final Sphere sphereB = new Sphere(new Point(2,0,4),1,new Color(0,255,255));
+
+    private final Sphere sphereC = new Sphere(new Point(-2,0,4),1,new Color(0,255,0));
 
 
 
@@ -40,20 +42,22 @@ public class Main
     {
         Main main = new Main();
 
-        for (int x = -canvasWidth/2; x<canvasWidth/2; canvasWidth++)
+        PixelDrawer drawer = PixelDrawer.getInstance(canvasWidth,canvasHeight);
+
+        for (int x = -canvasWidth/2; x<canvasWidth/2; x++)
         {
-            for (int y=-canvasHeight/2; y<canvasHeight/2;canvasHeight++)
+            for (int y=-canvasHeight/2; y<canvasHeight/2;y++)
             {
                 Vector3D c2vd = main.canvasToViewport(x,y);
 
+                Color color = main.traceRay(O, c2vd, 1, Double.POSITIVE_INFINITY);
 
-
-
+                drawer.putPixel(x,y,color);
 
             }
 
         }
-
+        drawer.show("光线追踪");
 
     }
 
@@ -77,7 +81,7 @@ public class Main
      * @param min 射线 P = O + tD 中t的取值范围最小值
      * @param max 射线 P = O + tD 中t的取值范围最大值
      */
-    public void traceRay(Point origin,Vector3D direction,double min,double max)
+    public Color traceRay(Point origin,Vector3D direction,double min,double max)
     {
 
         double closestT = Double.POSITIVE_INFINITY;
@@ -112,30 +116,39 @@ public class Main
 
             }
 
-
-
-
-
-
         }
+
+        if (closestSphere == null)
+        {
+            return backgroundColor;
+        }
+
+        return closestSphere.color;
 
 
     }
 
 
+    /**
+     *
+     * @param origin 摄像机原点
+     * @param direction 过摄像机原点的射线
+     * @param sphere 球体
+     * @return
+     */
    public List<Double> intersectRaySphere(Point origin,Vector3D direction,Sphere sphere)
    {
        List<Double> result = new ArrayList<>();
 
-       Vector3D co = Vector3D.subtract(origin,sphere.center);
+       Vector3D oc = Vector3D.subtract(origin,sphere.center);
 
        double r = sphere.radius;
 
        double k1 = Vector3D.dotProduct(direction,direction);
 
-       double k2 = 2*Vector3D.dotProduct(co,direction);
+       double k2 = 2*Vector3D.dotProduct(oc,direction);
 
-       double k3 = Vector3D.dotProduct(co,co)-r*r;
+       double k3 = Vector3D.dotProduct(oc,oc)-r*r;
 
        double discriminant = k2 * k2 - 4 * k1 * k3;
 
@@ -147,9 +160,9 @@ public class Main
            return result;
        }
 
-       double t1 = (-k2 + Math.sqrt(discriminant)) / 2 * k1;
+       double t1 = (-k2 + Math.sqrt(discriminant)) / (2 * k1);
 
-       double t2 = (-k2 - Math.sqrt(discriminant)) / 2 * k1;
+       double t2 = (-k2 - Math.sqrt(discriminant)) / (2 * k1);
 
        result.add(t1);
 
