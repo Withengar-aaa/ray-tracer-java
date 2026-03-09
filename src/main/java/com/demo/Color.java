@@ -28,4 +28,17 @@ public class Color
         return (255 << 24) | (this.red << 16) | (this.green << 8) | this.blue;
     }
 
+
+    //使值保持在0到255并转换为int值
+    public static int clamp(double value)
+    {
+        double clampedValue = Math.max(0, Math.min(255, value));
+
+        long roundedValue = Math.round(clampedValue);
+
+        return  Math.toIntExact(roundedValue);
+    }
+
+
+
 }
