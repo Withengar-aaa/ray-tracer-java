@@ -27,6 +27,15 @@ public class Main
 
     private final Sphere sphereC = new Sphere(new Point(-2,0,4),1,new Color(0,255,0));
 
+    private final Sphere sphereD = new Sphere(new Point(0,-5001,0),5000,new Color(255,255,0));
+
+
+    //定义光,所有光源的光强加起来不超过1
+    private final Light lAmbient = new Light(LightType.AMBIENT,0.2);
+
+    private final Light lPoint = new Light(LightType.POINT,0.6,new Point(2,1,0));
+
+    private final Light lDirectional = new Light(LightType.DIRECTIONAL,0.2,new Vector3D(1,4,4));
 
 
 
@@ -96,6 +105,8 @@ public class Main
 
         sphereList.add(sphereC);
 
+        sphereList.add(sphereD);
+
         for (Sphere sphere:sphereList)
         {
             List<Double> sphereResult = intersectRaySphere(origin, direction, sphere);
@@ -123,8 +134,19 @@ public class Main
             return backgroundColor;
         }
 
-        return closestSphere.color;
 
+        Vector3D point = Vector3D.add(Point.pointToVector(origin),Vector3D.multiply(closestT,direction));
+
+        Vector3D normal = Vector3D.subtract(Vector3D.vectorToPoint(point),closestSphere.center);
+
+        normal = Vector3D.multiply(1.0/Vector3D.vectorLength(normal),normal);
+
+        double k = computeLighting(Vector3D.vectorToPoint(point), normal);
+
+
+        return new Color(Color.clamp(k * closestSphere.color.red),
+                Color.clamp(k * closestSphere.color.green),
+                Color.clamp(k * closestSphere.color.blue));
 
     }
 
@@ -133,7 +155,7 @@ public class Main
      *
      * @param origin 摄像机原点
      * @param direction 过摄像机原点的射线
-     * @param sphere 球体
+     * @param sphere 球体与射线交点的解
      * @return
      */
    public List<Double> intersectRaySphere(Point origin,Vector3D direction,Sphere sphere)
@@ -169,6 +191,57 @@ public class Main
        result.add(t2);
 
        return result;
+
+   }
+
+    /**
+     *
+     * @param point 三维物体上一点
+     * @param normal 法线方向,需要归一化
+     * @return 所有光源的光强
+     */
+   private double computeLighting(Point point,Vector3D normal)
+   {
+       double intensity = 0;
+
+       List<Light> lightList = new ArrayList<>();
+
+       lightList.add(lAmbient);
+
+       lightList.add(lPoint);
+
+       lightList.add(lDirectional);
+
+       for (Light light:lightList)
+       {
+           if (light.getLightType() == LightType.AMBIENT)
+           {
+               intensity += light.getIntensity();
+           }
+           else
+           {
+               Vector3D vecL = null;
+
+               if (light.getLightType() == LightType.POINT)
+               {
+                   vecL = Vector3D.subtract(light.getPosition(),point);
+               }
+               else
+               {
+                   vecL = light.getDirection();
+               }
+
+               double nDotL = Vector3D.dotProduct(vecL, normal);
+
+               if (nDotL>0)
+               {
+                    intensity += light.getIntensity() * nDotL / (Vector3D.vectorLength(normal) * Vector3D.vectorLength(vecL));
+               }
+
+           }
+       }
+
+       return intensity;
 
    }
 
