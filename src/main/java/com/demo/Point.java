@@ -20,5 +20,13 @@ public class Point
     }
 
 
+    public static Vector3D pointToVector(Point point)
+    {
+        return new Vector3D(point.x,point.y,point.z);
+    }
+
+
+
+
 
 }
