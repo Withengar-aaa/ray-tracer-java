@@ -21,13 +21,13 @@ public class Main
 
     private final Color backgroundColor = new Color(255,255,255);
 
-    private final Sphere sphereA = new Sphere(new Point(0,-1,3),1,new Color(255,0,0));
+    private final Sphere sphereA = new Sphere(new Point(0,-1,3),1,new Color(255,0,0),500);
 
-    private final Sphere sphereB = new Sphere(new Point(2,0,4),1,new Color(0,255,255));
+    private final Sphere sphereB = new Sphere(new Point(2,0,4),1,new Color(0,255,255),500);
 
-    private final Sphere sphereC = new Sphere(new Point(-2,0,4),1,new Color(0,255,0));
+    private final Sphere sphereC = new Sphere(new Point(-2,0,4),1,new Color(0,255,0),10);
 
-    private final Sphere sphereD = new Sphere(new Point(0,-5001,0),5000,new Color(255,255,0));
+    private final Sphere sphereD = new Sphere(new Point(0,-5001,0),5000,new Color(255,255,0),1000);
 
 
     //定义光,所有光源的光强加起来不超过1
@@ -141,7 +141,9 @@ public class Main
 
         normal = Vector3D.multiply(1.0/Vector3D.vectorLength(normal),normal);
 
-        double k = computeLighting(Vector3D.vectorToPoint(point), normal);
+        Vector3D view = Vector3D.multiply(-1,direction);
+
+        double k = computeLighting(Vector3D.vectorToPoint(point), normal,view,closestSphere.specular);
 
 
         return new Color(Color.clamp(k * closestSphere.color.red),
@@ -198,9 +200,11 @@ public class Main
      *
      * @param point 三维物体上一点
      * @param normal 法线方向,需要归一化
+     * @param view 物体指向相机
+     * @param specular 物体粗糙度
      * @return 所有光源的光强
      */
-   private double computeLighting(Point point,Vector3D normal)
+   private double computeLighting(Point point,Vector3D normal,Vector3D view,int specular)
    {
        double intensity = 0;
 
@@ -233,10 +237,27 @@ public class Main
 
                double nDotL = Vector3D.dotProduct(vecL, normal);
 
+               //漫反射
                if (nDotL>0)
                {
                     intensity += light.getIntensity() * nDotL / (Vector3D.vectorLength(normal) * Vector3D.vectorLength(vecL));
                }
+
+               //镜面反射
+               if (specular != -1)
+               {
+                    Vector3D vecReflection =  Vector3D.vecSubtract(Vector3D.multiply(2 * Vector3D.dotProduct(normal,vecL) ,normal),vecL);
+
+                    double rDotV = Vector3D.dotProduct(vecReflection,view);
+
+                    if (rDotV>0)
+                    {
+                        intensity += light.getIntensity() * Math.pow(rDotV / (Vector3D.vectorLength(vecReflection) * Vector3D.vectorLength(view)),specular);
+                    }
+
+
+               }
+
 
            }
        }
