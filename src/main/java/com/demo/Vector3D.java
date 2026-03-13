@@ -23,10 +23,16 @@ public class Vector3D
         return new Vector3D(v1.x-v2.x,v1.y-v2.y,v1.z-v2.z);
     }
 
+    public static Vector3D vecSubtract(Vector3D v1,Vector3D v2)
+    {
+        return new Vector3D(v1.x-v2.x,v1.y-v2.y,v1.z-v2.z);
+    }
+
     public static double dotProduct(Vector3D v1,Vector3D v2)
     {
         return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
     }
+
 
 
 
