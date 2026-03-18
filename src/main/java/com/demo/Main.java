@@ -3,21 +3,24 @@ package com.demo;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Main
 {
 
     static Point O = new Point(0, 0, 0);
 
-    static int canvasWidth=960;
+    static int canvasWidth = 960;
 
-    static int canvasHeight =960 ;
+    static int canvasHeight = 960 ;
 
     static int canvasToViewDistance = 1;
 
-    static double viewWidth =1;
+    static double viewWidth = 1;
 
-    static double viewHeight= 1;
+    static double viewHeight = 1;
+
+    static double epsilon = 0.001;
 
     private final Color backgroundColor = new Color(255,255,255);
 
@@ -93,6 +96,50 @@ public class Main
     public Color traceRay(Point origin,Vector3D direction,double min,double max)
     {
 
+        List<Object> intersection = closestIntersection(origin, direction, min, max);
+
+        if (intersection == null)
+        {
+            return backgroundColor;
+        }
+
+        Sphere closestSphere  = (Sphere) intersection.get(0);
+
+        double closestT = (double) intersection.get(1);
+
+        Vector3D point = Vector3D.add(Point.pointToVector(origin),Vector3D.multiply(closestT,direction));
+
+        Vector3D normal = Vector3D.subtract(Vector3D.vectorToPoint(point),closestSphere.center);
+
+        normal = Vector3D.multiply(1.0/Vector3D.vectorLength(normal),normal);
+
+        Vector3D view = Vector3D.multiply(-1,direction);
+
+        double k = computeLighting(Vector3D.vectorToPoint(point), normal,view,closestSphere.specular);
+
+
+        return new Color(Color.clamp(k * closestSphere.color.red),
+                Color.clamp(k * closestSphere.color.green),
+                Color.clamp(k * closestSphere.color.blue));
+
+    }
+
+
+
+
+
+
+
+    /**
+     * 任意一点射出一条射线,与其他物体相交时t的最小值,P+tL,从P点出发沿着L走t个单位长度
+     * @param origin 出发的原点
+     * @param direction 射线射出的方向
+     * @param min t的最小值
+     * @param max t的最大值
+     * @return [球体,最小的t值]
+     */
+    public List<Object> closestIntersection(Point origin,Vector3D direction,double min,double max)
+    {
         double closestT = Double.POSITIVE_INFINITY;
 
         Sphere closestSphere = null;
@@ -129,26 +176,18 @@ public class Main
 
         }
 
-        if (closestSphere == null)
+        if (closestSphere != null)
         {
-            return backgroundColor;
+            List<Object> result = new ArrayList<>();
+
+            result.add(closestSphere);
+
+            result.add(closestT);
+
+            return result;
         }
 
-
-        Vector3D point = Vector3D.add(Point.pointToVector(origin),Vector3D.multiply(closestT,direction));
-
-        Vector3D normal = Vector3D.subtract(Vector3D.vectorToPoint(point),closestSphere.center);
-
-        normal = Vector3D.multiply(1.0/Vector3D.vectorLength(normal),normal);
-
-        Vector3D view = Vector3D.multiply(-1,direction);
-
-        double k = computeLighting(Vector3D.vectorToPoint(point), normal,view,closestSphere.specular);
-
-
-        return new Color(Color.clamp(k * closestSphere.color.red),
-                Color.clamp(k * closestSphere.color.green),
-                Color.clamp(k * closestSphere.color.blue));
+        return null;
 
     }
 
@@ -226,13 +265,26 @@ public class Main
            {
                Vector3D vecL = null;
 
+               double tMax ;
+
                if (light.getLightType() == LightType.POINT)
                {
                    vecL = Vector3D.subtract(light.getPosition(),point);
+
+                   tMax = 1;
                }
                else
                {
                    vecL = light.getDirection();
+
+                   tMax = Double.POSITIVE_INFINITY;
+               }
+
+               List<Object> blocker = closestIntersection(point, vecL, epsilon, tMax);
+
+               if (blocker != null)
+               {
+                   continue;
                }
 
                double nDotL = Vector3D.dotProduct(vecL, normal);
