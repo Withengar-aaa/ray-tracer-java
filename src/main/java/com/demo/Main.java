@@ -22,15 +22,17 @@ public class Main
 
     static double epsilon = 0.001;
 
-    private final Color backgroundColor = new Color(255,255,255);
+    static int recursionDepth = 3;
 
-    private final Sphere sphereA = new Sphere(new Point(0,-1,3),1,new Color(255,0,0),500);
+    private final Color backgroundColor = new Color(0,0,0);
 
-    private final Sphere sphereB = new Sphere(new Point(2,0,4),1,new Color(0,255,255),500);
+    private final Sphere sphereA = new Sphere(new Point(0,-1,3), 1, new Color(255,0,0), 500,0.2);
 
-    private final Sphere sphereC = new Sphere(new Point(-2,0,4),1,new Color(0,255,0),10);
+    private final Sphere sphereB = new Sphere(new Point(2,0,4),1,new Color(0,255,255),500,0.3);
 
-    private final Sphere sphereD = new Sphere(new Point(0,-5001,0),5000,new Color(255,255,0),1000);
+    private final Sphere sphereC = new Sphere(new Point(-2,0,4),1,new Color(0,255,0),10,0.4);
+
+    private final Sphere sphereD = new Sphere(new Point(0,-5001,0),5000,new Color(255,255,0),1000,0.5);
 
 
     //定义光,所有光源的光强加起来不超过1
@@ -62,7 +64,7 @@ public class Main
             {
                 Vector3D c2vd = main.canvasToViewport(x,y);
 
-                Color color = main.traceRay(O, c2vd, 1, Double.POSITIVE_INFINITY);
+                Color color = main.traceRay(O, c2vd, 1, Double.POSITIVE_INFINITY,recursionDepth);
 
                 drawer.putPixel(x,y,color);
 
@@ -93,7 +95,7 @@ public class Main
      * @param min 射线 P = O + tD 中t的取值范围最小值
      * @param max 射线 P = O + tD 中t的取值范围最大值
      */
-    public Color traceRay(Point origin,Vector3D direction,double min,double max)
+    public Color traceRay(Point origin,Vector3D direction,double min,double max,double depth)
     {
 
         List<Object> intersection = closestIntersection(origin, direction, min, max);
@@ -117,17 +119,36 @@ public class Main
 
         double k = computeLighting(Vector3D.vectorToPoint(point), normal,view,closestSphere.specular);
 
-
-        return new Color(Color.clamp(k * closestSphere.color.red),
+        Color localColor = new Color(Color.clamp(k * closestSphere.color.red),
                 Color.clamp(k * closestSphere.color.green),
                 Color.clamp(k * closestSphere.color.blue));
 
+        if (closestSphere.reflective <= 0 || depth<0)
+        {
+            return localColor;
+        }
+
+        Vector3D reflectedRay = reflectRay(view,normal);
+
+        Color reflectColor = traceRay(Vector3D.vectorToPoint(point),reflectedRay,epsilon,Double.POSITIVE_INFINITY,depth - 1);
+
+        return new Color(Color.clamp( (1 - closestSphere.reflective) * localColor.red + reflectColor.red * closestSphere.reflective),
+                Color.clamp( (1 - closestSphere.reflective) * localColor.green + reflectColor.green * closestSphere.reflective),
+                Color.clamp( (1 - closestSphere.reflective) * localColor.blue + reflectColor.blue * closestSphere.reflective)
+                );
     }
 
 
-
-
-
+    /**
+     *  返回反射射线
+     * @param v1 入射向量
+     * @param v2 法线向量
+     * @return
+     */
+    public Vector3D reflectRay(Vector3D v1,Vector3D v2)
+    {
+        return Vector3D.vecSubtract(Vector3D.multiply(2 * Vector3D.dotProduct(v1,v2),v2),v1);
+    }
 
 
     /**
@@ -280,6 +301,7 @@ public class Main
                    tMax = Double.POSITIVE_INFINITY;
                }
 
+               //确定阴影
                List<Object> blocker = closestIntersection(point, vecL, epsilon, tMax);
 
                if (blocker != null)
