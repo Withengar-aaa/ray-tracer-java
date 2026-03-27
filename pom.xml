@@ -8,6 +8,12 @@
     <artifactId>mortgage-calculator</artifactId>
     <version>1.0-SNAPSHOT</version>
     <name>Mortgage Calculator</name>
+
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.compilerVersion>21</maven.compiler.compilerVersion>
+    </properties>
     <!-- Source: https://mvnrepository.com/artifact/org.projectlombok/lombok -->
     <dependencies>
         <dependency>
