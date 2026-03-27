@@ -66,5 +66,16 @@ public class Vector3D
         return new Point(vector3D.x,vector3D.y,vector3D.z);
     }
 
+    public static Vector3D MultiplyMV(Matrix3 matrix3,Vector3D vector3D)
+    {
+
+        double x = vector3D.getX() * matrix3.m00() + vector3D.getY() * matrix3.m01() + vector3D.getZ() * matrix3.m02();
+        double y = vector3D.getX() * matrix3.m10() + vector3D.getY() * matrix3.m11() + vector3D.getZ() * matrix3.m12();
+        double z = vector3D.getX() * matrix3.m20() + vector3D.getY() * matrix3.m21() + vector3D.getZ() * matrix3.m22();
+
+        return new Vector3D(x,y,z);
+
+    }
+
 
 }
