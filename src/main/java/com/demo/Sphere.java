@@ -33,4 +33,33 @@ public class Sphere
         this.specular = specular;
         this.reflective = reflective;
     }
+
+    //判断点是否在圆内
+    public boolean isPointInside(Point point)
+    {
+        double x = point.x - center.x;
+        double y = point.y - center.y;
+        double z = point.z - center.z;
+        double distSq = x * x + y * y + z * z;
+        return distSq <= radius * radius + Main.epsilon;
+    }
+
+    // 布尔A - B差集
+    public static boolean isPointInDifference(Point point, Sphere sphereA, Sphere sphereB)
+    {
+        return sphereA.isPointInside(point) && !sphereB.isPointInside(point);
+    }
+
+    // 布尔A ∪ B并集
+    public static boolean isPointInUnion(Point point, Sphere sphereA, Sphere sphereB)
+    {
+        return sphereA.isPointInside(point) || sphereB.isPointInside(point);
+    }
+
+    // 布尔A ∩ B交集
+    public static boolean isPointInIntersection(Point point, Sphere sphereA, Sphere sphereB)
+    {
+        return sphereA.isPointInside(point) && sphereB.isPointInside(point);
+    }
+
 }
