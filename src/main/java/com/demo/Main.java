@@ -24,6 +24,10 @@ public class Main
 
     static int recursionDepth = 3;
 
+    static Matrix3 cameraRotation = new Matrix3(0.7071,0,-0.7071,0,1,0,0.7071,0,0.7071);
+
+    static Camera camera = new Camera(new Point(3,0,1),cameraRotation);
+
     private final Color backgroundColor = new Color(0,0,0);
 
     private final Sphere sphereA = new Sphere(new Point(0,-1,3), 1, new Color(255,0,0), 500,0.2);
@@ -34,6 +38,11 @@ public class Main
 
     private final Sphere sphereD = new Sphere(new Point(0,-5001,0),5000,new Color(255,255,0),1000,0.5);
 
+    private final Sphere sphereE = new Sphere(new Point(0,0,4),1,new Color(255,255,0),500,0.2);
+
+    private final Sphere sphereF = new Sphere(new Point(1,0,4),0.9,new Color(0,255,255),500,0.3);
+
+    private String BOOL_MODE = "DIFFERENCE";
 
     //定义光,所有光源的光强加起来不超过1
     private final Light lAmbient = new Light(LightType.AMBIENT,0.2);
@@ -64,7 +73,9 @@ public class Main
             {
                 Vector3D c2vd = main.canvasToViewport(x,y);
 
-                Color color = main.traceRay(O, c2vd, 1, Double.POSITIVE_INFINITY,recursionDepth);
+                Vector3D direction = Vector3D.MultiplyMV(cameraRotation,c2vd);
+
+                Color color = main.traceRay(camera.position(), direction, 1, Double.POSITIVE_INFINITY,recursionDepth);
 
                 drawer.putPixel(x,y,color);
 
@@ -175,21 +186,77 @@ public class Main
 
         sphereList.add(sphereD);
 
+        sphereList.add(sphereE);
+
+        sphereList.add(sphereF);
+
         for (Sphere sphere:sphereList)
         {
             List<Double> sphereResult = intersectRaySphere(origin, direction, sphere);
 
-            if (sphereResult.get(0) < closestT && sphereResult.get(0) < max && sphereResult.get(0) > min)
+            Double t1 = sphereResult.get(0);
+
+            Double t2 = sphereResult.get(1);
+
+            if (t1 < closestT && t1 < max && t1 > min)
             {
-                closestT = sphereResult.get(0);
+                Point spherePoint = new Point(
+                        origin.x + direction.x * t1,
+                        origin.y + direction.y * t1,
+                        origin.z + direction.z * t1
+                );
+
+                boolean isSurfaceValid = true;
+
+                if (sphere == sphereE || sphere==sphereF)
+                {
+                    isSurfaceValid = switch (BOOL_MODE)
+                    {
+                        case "UNION" -> sphereE.isPointInside(spherePoint) || sphereF.isPointInside(spherePoint);
+                        case "DIFFERENCE" -> sphereE.isPointInside(spherePoint) && !sphereF.isPointInside(spherePoint);
+                        case "INTERSECTION" -> sphereE.isPointInside(spherePoint) && sphereF.isPointInside(spherePoint);
+                        default -> true;
+                    };
+                }
+
+                if (!isSurfaceValid)
+                {
+                    continue;
+                }
+
+                closestT = t1;
 
                 closestSphere = sphere;
 
             }
 
-            if (sphereResult.get(1) < closestT && sphereResult.get(1) < max && sphereResult.get(1) > min)
+            if (t2 < closestT && t2 < max && t2 > min)
             {
-                closestT = sphereResult.get(1);
+                Point spherePoint = new Point(
+                        origin.x + direction.x * t2,
+                        origin.y + direction.y * t2,
+                        origin.z + direction.z * t2
+                );
+
+                boolean isSurfaceValid = true;
+
+                if (sphere == sphereE || sphere==sphereF)
+                {
+                    isSurfaceValid = switch (BOOL_MODE)
+                    {
+                        case "UNION" -> sphereE.isPointInside(spherePoint) || sphereF.isPointInside(spherePoint);
+                        case "DIFFERENCE" -> sphereE.isPointInside(spherePoint) && !sphereF.isPointInside(spherePoint);
+                        case "INTERSECTION" -> sphereE.isPointInside(spherePoint) && sphereF.isPointInside(spherePoint);
+                        default -> true;
+                    };
+                }
+
+                if (!isSurfaceValid)
+                {
+                    continue;
+                }
+
+                closestT = t2;
 
                 closestSphere = sphere;
 
