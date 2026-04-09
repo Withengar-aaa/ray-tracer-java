@@ -66,6 +66,28 @@ public class PixelDrawer
     }
 
     /**
+     *
+     * @param x 原始x坐标
+     * @param y 原始y坐标
+     * @param color 像素颜色
+     */
+    public void writePixel(int x,int y,Color color)
+    {
+        int canvasX = canvasWidth / 2 + x;
+
+        int canvasY = canvasHeight / 2 - y - 1;
+
+        // 自动边界检查，避免越界
+        if (canvasX >= 0 && canvasX < canvasWidth && canvasY >= 0 && canvasY < canvasHeight)
+        {
+            imageBuffer.setRGB(canvasX, canvasY, color.toRGB());
+        }
+    }
+
+
+
+
+    /**
      * 显示绘制结果（弹出窗口）
      * @param title 窗口标题
      */

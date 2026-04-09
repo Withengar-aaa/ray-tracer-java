@@ -95,7 +95,7 @@ public class Main
      */
     public Vector3D canvasToViewport(int x,int y)
     {
-        return new Vector3D(x*viewWidth/canvasWidth,y*viewHeight/canvasHeight,canvasToViewDistance);
+        return new Vector3D(x * viewWidth / canvasWidth,y * viewHeight / canvasHeight,canvasToViewDistance);
     }
 
 
