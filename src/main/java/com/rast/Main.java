@@ -5,43 +5,98 @@ import com.demo.PixelDrawer;
 import com.demo.Point;
 import com.demo.Vector3D;
 
+import java.util.ArrayList;
+import java.util.List;
+
+
 public class Main
 {
 
-    PixelDrawer drawer = PixelDrawer.getInstance(600,800);
+    public static PixelDrawer drawer = PixelDrawer.getInstance(600,800);
 
     public static void main(String[] args)
     {
 
-        Main main = new Main();
+        Line line = new Line();
 
-        main.drawLine(-200,-100,140,120,new Color(255,255,255));
+        line.drawLine(new Point2D(-200,-250),new Point2D(200,50),new Color(255,255,255),drawer);
 
-        main.drawLine(-50,-200,60,240,new Color(255,255,255));
+        line.drawLine(new Point2D(200,50),new Point2D(20,250),new Color(255,255,255),drawer);
 
-        main.drawer.show("直线");
+        line.drawLine(new Point2D(20,250),new Point2D(-200,-250),new Color(255,255,255),drawer);
+
+        DrawFilledTriangle(new Point2D(-200,-250),new Point2D(200,50),new Point2D(20,250),new Color(255,255,255));
+
+        drawer.show("直线");
 
     }
 
 
-    public void drawLine(int x0, int y0, int x1, int y1,Color color)
+    public static void DrawFilledTriangle(Point2D p0,Point2D p1,Point2D p2,Color color)
     {
-
-        float dx = x1 - x0;
-
-        float dy = y1 - y0;
-
-        float a = dy / dx;
-
-        float b = y0 - a * x0;
-
-        for (int x = x0;x <= x1;x++)
+        // Sort the points from bottom to top.
+        if (p1.y() < p0.y())
         {
-            int y =Math.round(a * x + b);
-
-            drawer.writePixel(x,y,color);
+            var swap = p0;
+            p0 = p1;
+            p1 = swap;
+        }
+        if (p2.y() < p0.y())
+        {
+            var swap = p0;
+            p0 = p2;
+            p2 = swap;
+        }
+        if (p2.y() < p1.y())
+        {
+            var swap = p1;
+            p1 = p2;
+            p2 = swap;
         }
 
+        Line line = new Line();
+
+        List<Integer> x01 = line.interpolate(p0.y(), p0.x(), p1.y(), p1.x());
+
+        List<Integer> x12 = line.interpolate(p1.y(), p1.x(), p2.y(), p2.x());
+
+        List<Integer> x02 = line.interpolate(p0.y(), p0.x(), p2.y(), p2.x());
+
+        List<Integer> x012 = new ArrayList<>();
+
+        x012.addAll(x01);
+
+        x012.remove(x012.size() - 1);
+
+        x012.addAll(x12);
+
+        List<Integer> xLeft = new ArrayList<>();
+
+        List<Integer> xRight = new ArrayList<>();
+
+        int m = x02.size() / 2;
+
+        if (x02.get(m) < x012.get(m))
+        {
+            xLeft = x02;
+            xRight = x012;
+        }
+        else
+        {
+            xLeft = x012;
+            xRight = x02;
+        }
+
+        for (int y = p0.y();y <= p2.y();y++)
+        {
+            for (var x = xLeft.get(y - p0.y()); x <= xRight.get(y - p0.y()); x++)
+            {
+                drawer.writePixel(x,y,color);
+            }
+        }
+
+
     }
+
 
 }
