@@ -14,21 +14,51 @@ public class Line
         drawLine( p0.x(),p0.y(),p1.x(),p1.y(),color,drawer);
     }
 
-    public List<Integer> interpolate(int i0,int d0,int i1,int d1)
+    /**
+     * a = (d1 - d0) / (i1 - i0)
+     * d = d0
+     * d = d + a
+     * @param i0  自变量
+     * @param d0  因变量起始点
+     * @param i1  自变量终点
+     * @param d1  因变量终点
+     * @param <N>
+     * @param <T>
+     * @return 因变量结果数组
+     */
+    public <N extends Number,T extends Number> List<T> interpolate(N i0,T d0,N i1,T d1)
     {
-        ArrayList<Integer> values = new ArrayList<>();
+        List<T> values = new ArrayList<>();
 
-        float a = (float) (d1 - d0) / (i1 - i0);
+        double start = i0.doubleValue();
+        double end = i1.doubleValue();
+        double valStart = d0.doubleValue();
+        double valEnd = d1.doubleValue();
 
-        float d = d0;
-
-        for (int i = i0;i <= i1;i++)
+        if (start == end)
         {
-            values.add((int)d);
-
-            d +=a;
+            values.add((T) d0);
+            return values;
         }
 
+        double step = (valEnd - valStart) / (end - start);
+
+        double current = valStart;
+
+        for (double i = start; i <= end; i += 1)
+        {
+            if (d0 instanceof Integer)
+            {
+                values.add((T) Integer.valueOf((int) current));
+            }
+
+            else if (d0 instanceof Double)
+            {
+                values.add((T) Double.valueOf(current));
+            }
+
+            current += step;
+        }
         return values;
 
     }
