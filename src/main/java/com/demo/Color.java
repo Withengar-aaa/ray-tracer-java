@@ -39,6 +39,11 @@ public class Color
         return  Math.toIntExact(roundedValue);
     }
 
+    public static Color multiply(double k,Color color)
+    {
+        return new Color((int) (k * color.getRed()), (int) (k * color.getGreen()), (int) (k * color.getBlue()));
+    }
+
 
 
 }
